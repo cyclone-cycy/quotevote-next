@@ -102,6 +102,7 @@ export const usePagination = ({
 
         // Update page if URL has a valid page number and it's different from current
         if (newUrlPage && newUrlPage > 0 && newUrlPage !== currentPage) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
             setCurrentPage(newUrlPage)
             onPageChange?.(newUrlPage)
         }

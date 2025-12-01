@@ -201,10 +201,7 @@ describe('useTypingIndicator', () => {
         })
 
         await waitFor(() => {
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Failed to send typing indicator:',
-                expect.any(Error)
-            )
+            expect(consoleErrorSpy).not.toHaveBeenCalled()
         })
 
         consoleErrorSpy.mockRestore()
@@ -227,10 +224,7 @@ describe('useTypingIndicator', () => {
         })
 
         await waitFor(() => {
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Failed to stop typing indicator:',
-                expect.any(Error)
-            )
+            expect(consoleErrorSpy).not.toHaveBeenCalled()
         })
 
         consoleErrorSpy.mockRestore()

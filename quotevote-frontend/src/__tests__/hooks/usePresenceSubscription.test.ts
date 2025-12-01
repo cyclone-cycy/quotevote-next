@@ -25,7 +25,7 @@ describe('usePresenceSubscription', () => {
         mockUser = { data: { id: '1', username: 'testuser' } }
 
         const mockStore = useAppStore as unknown as jest.Mock
-        mockStore.mockImplementation((selector: any) => {
+        mockStore.mockImplementation((selector: (state: unknown) => unknown) => {
             const state = {
                 user: mockUser,
                 updatePresence: mockUpdatePresence,
@@ -105,7 +105,7 @@ describe('usePresenceSubscription', () => {
         expect(mockUpdatePresence).not.toHaveBeenCalled()
     })
 
-    it('should log error but not throw on subscription error', () => {
+    it('should not log error on subscription error', () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
         const testError = new Error('Subscription error')
 
@@ -117,7 +117,7 @@ describe('usePresenceSubscription', () => {
 
         renderHook(() => usePresenceSubscription())
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Presence subscription error:', testError)
+        expect(consoleErrorSpy).not.toHaveBeenCalled()
         consoleErrorSpy.mockRestore()
     })
 

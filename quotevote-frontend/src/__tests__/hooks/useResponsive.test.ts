@@ -104,6 +104,8 @@ describe('useResponsive', () => {
         expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
     })
 
+    // Skipped: Cannot redefine global.window in this test environment to simulate SSR.
+    // TypeError: Cannot redefine property: window
     it.skip('should handle SSR gracefully', () => {
         // Simulate SSR by making window undefined
         const originalWindow = global.window

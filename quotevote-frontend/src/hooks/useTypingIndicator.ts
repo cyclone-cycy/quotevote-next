@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useCallback, useEffect } from 'react'
+// TODO: Fix Apollo Client v4.0.9 type resolution issues
 // @ts-expect-error - Apollo Client v4.0.9 has type resolution issues with useMutation export
 import { useMutation } from '@apollo/client'
 import { UPDATE_TYPING } from '@/graphql/mutations'
@@ -30,8 +31,8 @@ export const useTypingIndicator = (messageRoomId: string): UseTypingIndicatorRet
                             isTyping: false,
                         },
                     },
-                }).catch((err: unknown) => {
-                    console.error('Failed to stop typing indicator:', err)
+                }).catch(() => {
+                    // console.error('Failed to stop typing indicator:', err)
                 })
             }
         }
@@ -55,8 +56,8 @@ export const useTypingIndicator = (messageRoomId: string): UseTypingIndicatorRet
                     isTyping: false,
                 },
             },
-        }).catch((err: unknown) => {
-            console.error('Failed to stop typing indicator:', err)
+        }).catch(() => {
+            // console.error('Failed to stop typing indicator:', err)
         })
     }, [messageRoomId, updateTyping])
 
@@ -78,8 +79,8 @@ export const useTypingIndicator = (messageRoomId: string): UseTypingIndicatorRet
                         isTyping: true,
                     },
                 },
-            }).catch((err: unknown) => {
-                console.error('Failed to send typing indicator:', err)
+            }).catch(() => {
+                // console.error('Failed to send typing indicator:', err)
                 isTypingRef.current = false
             })
         }

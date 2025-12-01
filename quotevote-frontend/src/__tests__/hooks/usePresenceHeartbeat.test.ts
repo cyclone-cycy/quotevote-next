@@ -1,4 +1,5 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
+// TODO: Fix Apollo Client v4.0.9 type resolution issues
 // @ts-expect-error - Apollo Client v4.0.9 has type resolution issues with useMutation export
 import { useMutation } from '@apollo/client'
 import { usePresenceHeartbeat } from '@/hooks/usePresenceHeartbeat'
@@ -63,6 +64,8 @@ describe('usePresenceHeartbeat', () => {
         expect(mockHeartbeat).toHaveBeenCalledTimes(2)
     })
 
+    // Skipped: Retry logic tests are flaky in this test environment due to timer/promise interaction issues.
+    // Needs further investigation into how to properly mock timers and promises together for this hook.
     it.skip('should retry on failure with exponential backoff', async () => {
         mockHeartbeat
             .mockRejectedValueOnce(new Error('Network error'))
@@ -76,10 +79,9 @@ describe('usePresenceHeartbeat', () => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(1)
         })
 
-        // First retry after 10000ms (interval * 2^1)
+        // First retry after 20000ms (interval * 2^1)
         await act(async () => {
             jest.advanceTimersByTime(20000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(2)
@@ -88,13 +90,13 @@ describe('usePresenceHeartbeat', () => {
         // Second retry after 40000ms (interval * 2^2)
         await act(async () => {
             jest.advanceTimersByTime(40000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(3)
         })
     })
 
+    // Skipped: See above
     it.skip('should stop retrying after max retries', async () => {
         mockHeartbeat.mockRejectedValue(new Error('Network error'))
 
@@ -108,7 +110,6 @@ describe('usePresenceHeartbeat', () => {
         // Retry 1
         await act(async () => {
             jest.advanceTimersByTime(20000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(2)
@@ -117,7 +118,6 @@ describe('usePresenceHeartbeat', () => {
         // Retry 2
         await act(async () => {
             jest.advanceTimersByTime(40000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(3)
@@ -126,7 +126,6 @@ describe('usePresenceHeartbeat', () => {
         // Retry 3
         await act(async () => {
             jest.advanceTimersByTime(80000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(4)
@@ -139,6 +138,7 @@ describe('usePresenceHeartbeat', () => {
         expect(mockHeartbeat).toHaveBeenCalledTimes(4)
     })
 
+    // Skipped: See above
     it.skip('should reset retry count on successful heartbeat', async () => {
         mockHeartbeat
             .mockRejectedValueOnce(new Error('Network error'))
@@ -154,7 +154,6 @@ describe('usePresenceHeartbeat', () => {
         // Retry succeeds
         await act(async () => {
             jest.advanceTimersByTime(20000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(2)
@@ -163,7 +162,6 @@ describe('usePresenceHeartbeat', () => {
         // Next interval should work normally (not with backoff)
         await act(async () => {
             jest.advanceTimersByTime(10000)
-            await Promise.resolve()
         })
         await waitFor(() => {
             expect(mockHeartbeat).toHaveBeenCalledTimes(3)

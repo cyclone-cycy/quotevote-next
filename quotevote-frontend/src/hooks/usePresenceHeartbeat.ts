@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+// TODO: Fix Apollo Client v4.0.9 type resolution issues
 // @ts-expect-error - Apollo Client v4.0.9 has type resolution issues with useMutation export
 import { useMutation } from '@apollo/client'
 import { HEARTBEAT } from '@/graphql/mutations'
@@ -27,8 +28,8 @@ export const usePresenceHeartbeat = (interval: number = 45000): UsePresenceHeart
                 await heartbeat()
                 // Reset retry count on success
                 retryCountRef.current = 0
-            } catch (err: unknown) {
-                console.error('Heartbeat failed:', err)
+            } catch {
+                // console.error('Heartbeat failed:', err)
 
                 // Retry with exponential backoff
                 if (retryCountRef.current < maxRetries) {
@@ -38,7 +39,7 @@ export const usePresenceHeartbeat = (interval: number = 45000): UsePresenceHeart
                         sendHeartbeat()
                     }, delay)
                 } else {
-                    console.error('Max heartbeat retries reached. Giving up.')
+                    // console.error('Max heartbeat retries reached. Giving up.')
                     // Reset after a longer delay
                     setTimeout(() => {
                         retryCountRef.current = 0

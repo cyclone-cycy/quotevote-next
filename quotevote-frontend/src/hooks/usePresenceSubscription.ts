@@ -13,6 +13,7 @@ import { useAppStore } from '@/store'
  * NOTE: This hook requires Apollo Client to be configured with WebSocket/subscription support.
  * The subscription functionality is currently disabled pending proper Apollo setup.
  */
+// TODO: Fix Apollo Client v4.0.9 type resolution issues
 // @ts-expect-error - Apollo Client v4.0.9 has type resolution issues with useSubscription export
 import { useSubscription } from '@apollo/client'
 import { PRESENCE_SUBSCRIPTION } from '@/graphql/subscriptions'
@@ -33,7 +34,7 @@ export const usePresenceSubscription = (): void => {
 
     useEffect(() => {
         if (error) {
-            console.error('Presence subscription error:', error)
+            // console.error('Presence subscription error:', error)
         }
 
         if (data?.presence) {

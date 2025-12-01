@@ -20,7 +20,6 @@ const BREAKPOINTS = {
  * @returns Object containing current breakpoint and responsive boolean helpers
  */
 export const useResponsive = (): UseResponsiveReturn => {
-    const [breakpoint, setBreakpoint] = useState<ResponsiveBreakpoint>('xs')
     const [windowWidth, setWindowWidth] = useState<number>(
         typeof window !== 'undefined' ? window.innerWidth : 0
     )
@@ -43,22 +42,18 @@ export const useResponsive = (): UseResponsiveReturn => {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    useEffect(() => {
-        // Determine current breakpoint based on window width
-        if (windowWidth >= BREAKPOINTS['2xl']) {
-            setBreakpoint('2xl')
-        } else if (windowWidth >= BREAKPOINTS.xl) {
-            setBreakpoint('xl')
-        } else if (windowWidth >= BREAKPOINTS.lg) {
-            setBreakpoint('lg')
-        } else if (windowWidth >= BREAKPOINTS.md) {
-            setBreakpoint('md')
-        } else if (windowWidth >= BREAKPOINTS.sm) {
-            setBreakpoint('sm')
-        } else {
-            setBreakpoint('xs')
-        }
-    }, [windowWidth])
+    let breakpoint: ResponsiveBreakpoint = 'xs'
+    if (windowWidth >= BREAKPOINTS['2xl']) {
+        breakpoint = '2xl'
+    } else if (windowWidth >= BREAKPOINTS.xl) {
+        breakpoint = 'xl'
+    } else if (windowWidth >= BREAKPOINTS.lg) {
+        breakpoint = 'lg'
+    } else if (windowWidth >= BREAKPOINTS.md) {
+        breakpoint = 'md'
+    } else if (windowWidth >= BREAKPOINTS.sm) {
+        breakpoint = 'sm'
+    }
 
     return {
         breakpoint,
