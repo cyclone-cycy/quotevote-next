@@ -89,4 +89,3 @@ export interface AppState {
   chat: ChatState;
   filter: FilterState;
 }
-
