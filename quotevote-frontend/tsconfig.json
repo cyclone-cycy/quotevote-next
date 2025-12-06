@@ -86,6 +86,12 @@
       "@/components/Comment/*": [
         "./src/components/Comment/*"
       ],
+      "@/components/Quotes": [
+        "./src/components/Quotes"
+      ],
+      "@/components/Quotes/*": [
+        "./src/components/Quotes/*"
+      ],
       "@/components/*": [
         "./src/app/components/*"
       ],
