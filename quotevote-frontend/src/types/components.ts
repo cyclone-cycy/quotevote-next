@@ -696,3 +696,25 @@ export interface SubmitPostFormValues {
   group: Group | { title: string } | string;
 }
 
+// Quotes Component Types
+export interface QuoteUser {
+  _id: string;
+  username: string;
+  contributorBadge?: string;
+}
+
+export interface Quote {
+  _id: string;
+  quote: string;
+  created: string;
+  user?: QuoteUser;
+}
+
+export interface LatestQuotesProps {
+  /**
+   * Maximum number of quotes to fetch
+   * @default 5
+   */
+  limit?: number;
+}
+
