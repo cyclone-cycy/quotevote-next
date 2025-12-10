@@ -19,6 +19,25 @@ export const GET_BUDDY_LIST = gql`
 `
 
 /**
+ * Get all messages for a chat room
+ * Used by the conversation view (MessageItemList)
+ */
+export const GET_ROOM_MESSAGES = gql`
+    query getRoomMessages($messageRoomId: String!) {
+      messages(messageRoomId: $messageRoomId) {
+        _id
+        messageRoomId
+        userId
+        userName
+        title
+        text
+        created
+        type
+      }
+    }
+  `
+
+/**
  * Get roster query (includes pending requests and blocked users)
  */
 export const GET_ROSTER = gql`
@@ -559,6 +578,45 @@ export const GET_CHAT_ROOM = gql`
       created
       title
       avatar
+    }
+  }
+`
+
+/**
+ * Get all chat rooms for the current user
+ * Used for chat sidebar counts and room lists
+ */
+export const GET_CHAT_ROOMS = gql`
+  query getChatRooms {
+    messageRooms {
+      _id
+      users
+      messageType
+      created
+      title
+      avatar
+      lastMessageTime
+      lastActivity
+      unreadMessages
+      postDetails {
+        title
+        text
+      }
+    }
+  }
+`
+
+/**
+ * Search users by name or username
+ */
+export const SEARCH_USERNAMES = gql`
+  query searchUsernames($query: String!) {
+    searchUser(query: $query) {
+      _id
+      username
+      name
+      avatar
+      contributorBadge
     }
   }
 `

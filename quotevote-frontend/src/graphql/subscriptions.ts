@@ -56,3 +56,22 @@ export const NEW_MESSAGE_SUBSCRIPTION = gql`
     }
   }
 `
+
+/**
+ * Typing subscription - subscribes to typing events in a message room
+ */
+export const TYPING_SUBSCRIPTION = gql`
+  subscription typing($messageRoomId: String!) {
+    typing(messageRoomId: $messageRoomId) {
+      messageRoomId
+      userId
+      user {
+        _id
+        name
+        username
+      }
+      isTyping
+      timestamp
+    }
+  }
+`

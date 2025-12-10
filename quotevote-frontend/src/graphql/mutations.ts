@@ -13,6 +13,22 @@ export const HEARTBEAT = gql`
 `
 
 /**
+ * Update current user's presence (status + message)
+ */
+export const UPDATE_PRESENCE = gql`
+  mutation updatePresence($presence: PresenceInput!) {
+    updatePresence(presence: $presence) {
+      _id
+      userId
+      status
+      statusMessage
+      lastHeartbeat
+      lastSeen
+    }
+  }
+`
+
+/**
  * Add buddy mutation (send friend request)
  */
 export const ADD_BUDDY = gql`
@@ -378,5 +394,35 @@ export const REPORT_USER = gql`
 export const REPORT_BOT = gql`
   mutation reportBot($userId: String!, $reporterId: String!) {
     reportBot(userId: $userId, reporterId: $reporterId)
+  }
+`
+export const SEND_MESSAGE = gql`
+  mutation chat($message: MessageInput!) {
+    createMessage(message: $message) {
+      _id
+      userId
+      userName
+      messageRoomId
+      title
+      text
+      type
+      created
+      user {
+        _id
+        name
+        username
+        avatar
+        contributorBadge
+      }
+    }
+  }
+`
+
+
+export const DELETE_MESSAGE = gql`
+  mutation deleteMessage($messageId: String!) {
+    deleteMessage(messageId: $messageId) {
+      _id
+    }
   }
 `
