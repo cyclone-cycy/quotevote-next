@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
  * <Avatar src="/avatar.jpg" alt="John Doe" size="md" />
  * <Avatar alt="Jane Smith" fallback="JS" size="lg" />
  */
-export default function Avatar({
+export function Avatar({
   src,
   alt,
   fallback,
