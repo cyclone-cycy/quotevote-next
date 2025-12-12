@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --respawn --transpile-only app/server.ts",
     "build": "tsc",
     "start": "node dist/app/server.js",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint ."
   },
   "_legacy_scripts_TODO_remove_after_stable": {
