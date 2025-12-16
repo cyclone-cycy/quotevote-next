@@ -21,7 +21,7 @@ export function Eyebrow() {
   }
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [feedback, setFeedback] = useState<string | undefined>();
+  const [feedback, setFeedback] = useState<string | undefined>("sfsfsfwgvrw");
 
   const [isLoginOptionsModalOpen, setIsLoginOptionsModalOpen] = useState<boolean>(false);
   const [isOnboardingCompletionModalOpen, setIsOnboardingCompletionModalOpen] =
@@ -68,7 +68,7 @@ export function Eyebrow() {
           break;
       }
     } catch (err) {
-      setFeedback('An error has occured')
+      setFeedback("An error has occured");
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +108,8 @@ export function Eyebrow() {
         onClose={closeOnboardingCompletionModal}
       />
       <div className="bg-white z-40 shadow-sm">
-        <div className="mx-auto px-6 py-3 w-full flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1.5 grow">
+        <div className="mx-auto px-6 py-3 w-full flex flex-col sm:flex-row items-start justify-between gap-3">
+          <div className="flex flex-col gap-1.5 grow w-full">
             <Input
               id="email"
               type="email"
@@ -120,12 +120,12 @@ export function Eyebrow() {
               aria-invalid={!!errors.email}
             />
             {errors.email && (
-              <div className="min-h-4 text-[13px] text-red-500">
+              <div className="min-h-4 text-[13px] text-red-500 hidden sm:block">
                 <span>{errors.email.message}</span>
               </div>
             )}
             {feedback && (
-              <div className="min-h-4 text-[13px] text-primary">
+              <div className="min-h-4 text-[13px] text-primary hidden sm:block">
                 <span>{feedback}</span>
               </div>
             )}
@@ -135,9 +135,21 @@ export function Eyebrow() {
             onClick={handleSubmit(handleContinue)}
             disabled={!isValid || isLoading}
             type="submit"
+            className="mx-auto w-full sm:w-fit"
           >
             Continue
           </Button>
+
+          {errors.email && (
+            <div className="min-h-4 text-[13px] text-red-500 block sm:hidden">
+              <span>{errors.email.message}</span>
+            </div>
+          )}
+          {feedback && (
+            <div className="min-h-4 text-[13px] text-primary block sm:hidden">
+              <span>{feedback}</span>
+            </div>
+          )}
         </div>
       </div>
     </>
