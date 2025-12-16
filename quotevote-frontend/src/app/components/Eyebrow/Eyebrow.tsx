@@ -13,7 +13,7 @@ import OnboardingCompletionModal from "./OnboardingCompletionModal";
 
 export function Eyebrow() {
   const user = useAppStore((state) => state.user.data);
-  const loggedIn = !!user?._id;
+  const loggedIn = !!user?.id;
 
   // We don't render component if user is authenticated
   if (loggedIn) {
@@ -115,7 +115,7 @@ export function Eyebrow() {
         <div className="mx-auto px-6 py-3 w-full flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1.5 grow">
             <Input
-              id="eyebrow-email"
+              id="email"
               type="email"
               placeholder="Enter your email"
               className="w-full"
