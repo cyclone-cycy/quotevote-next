@@ -20,7 +20,7 @@ export function Eyebrow() {
 
   const [isLoginOptionsModalOpen, setIsLoginOptionsModalOpen] = useState<boolean>(false);
   const [isOnboardingCompletionModalOpen, setIsOnboardingCompletionModalOpen] =
-    useState<boolean>(true);
+    useState<boolean>(false);
 
   const {
     register,
