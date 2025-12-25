@@ -129,6 +129,15 @@ export const SEND_PASSWORD_RESET_EMAIL = gql`
 `
 
 /**
+ * Send investor email mutation
+ */
+export const SEND_INVESTOR_EMAIL = gql`
+  mutation sendInvestorMail($email: String!) {
+    sendInvestorMail(email: $email)
+  }
+`
+
+/**
  * Update user password mutation
  */
 export const UPDATE_USER_PASSWORD = gql`
