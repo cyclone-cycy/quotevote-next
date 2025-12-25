@@ -18,7 +18,7 @@ import { GET_ROSTER } from '@/graphql/queries'
 const mockUseQuery = jest.fn()
 const mockMutate = jest.fn()
 let mutationCallbacks: { onCompleted?: (data: unknown) => void; onError?: (error: Error) => void } = {}
-const mockUseMutation = jest.fn((mutation, options) => {
+const mockUseMutation = jest.fn((_mutation, options) => {
   // Store callbacks for later use
   mutationCallbacks = {
     onCompleted: options?.onCompleted,
@@ -53,8 +53,8 @@ const mockUseMutation = jest.fn((mutation, options) => {
 })
 jest.mock('@apollo/client/react', () => ({
   ...jest.requireActual('@apollo/client/react'),
-  useQuery: (...args: unknown[]) => mockUseQuery(...args),
-  useMutation: (...args: unknown[]) => mockUseMutation(...args),
+  useQuery: (query: unknown, options?: unknown) => mockUseQuery(query, options),
+  useMutation: (mutation: unknown, options?: unknown) => mockUseMutation(mutation, options),
 }))
 
 // Mock Zustand store

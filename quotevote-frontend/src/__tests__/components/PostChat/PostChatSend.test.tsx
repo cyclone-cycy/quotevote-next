@@ -8,7 +8,7 @@
  * - Error handling
  */
 
-import { render, screen, fireEvent, waitFor, act } from '@/__tests__/utils/test-utils'
+import { render, screen, fireEvent, waitFor } from '@/__tests__/utils/test-utils'
 import PostChatSend from '@/components/PostChat/PostChatSend'
 import { useAppStore } from '@/store'
 
@@ -17,7 +17,7 @@ const mockUseQuery = jest.fn()
 const mockMutate = jest.fn()
 let mutationCallbacks: { onCompleted?: (data: unknown) => void; onError?: (error: Error) => void } = {}
 let shouldSuppressErrorReThrow = false
-const mockUseMutation = jest.fn((mutation, options) => {
+const mockUseMutation = jest.fn((_mutation, options) => {
   // Store callbacks for later use
   mutationCallbacks = {
     onCompleted: options?.onCompleted,
@@ -64,8 +64,8 @@ const mockUseMutation = jest.fn((mutation, options) => {
 })
 jest.mock('@apollo/client/react', () => ({
   ...jest.requireActual('@apollo/client/react'),
-  useQuery: (...args: unknown[]) => mockUseQuery(...args),
-  useMutation: (...args: unknown[]) => mockUseMutation(...args),
+  useQuery: (query: unknown, options?: unknown) => mockUseQuery(query, options),
+  useMutation: (mutation: unknown, options?: unknown) => mockUseMutation(mutation, options),
 }))
 
 // Mock Zustand store

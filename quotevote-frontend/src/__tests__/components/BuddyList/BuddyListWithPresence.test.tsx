@@ -107,31 +107,32 @@ const mockBuddies = [
   },
 ]
 
-const mockBuddyListQuery = {
-  request: {
-    query: GET_BUDDY_LIST,
-  },
-  result: {
-    data: {
-      buddyList: mockBuddies,
-    },
-  },
-}
+// Mock query objects for reference (not used directly but kept for documentation)
+// const mockBuddyListQuery = {
+//   request: {
+//     query: GET_BUDDY_LIST,
+//   },
+//   result: {
+//     data: {
+//       buddyList: mockBuddies,
+//     },
+//   },
+// }
 
-const mockRosterQuery = {
-  request: {
-    query: GET_ROSTER,
-  },
-  result: {
-    data: {
-      roster: {
-        buddies: [],
-        pendingRequests: [],
-        blockedUsers: [],
-      },
-    },
-  },
-}
+// const mockRosterQuery = {
+//   request: {
+//     query: GET_ROSTER,
+//   },
+//   result: {
+//     data: {
+//       roster: {
+//         buddies: [],
+//         pendingRequests: [],
+//         blockedUsers: [],
+//       },
+//     },
+//   },
+// }
 
 const mockRosterWithPending = {
   request: {

@@ -85,17 +85,18 @@ const mockRoom: ChatRoom = {
   created: new Date().toISOString(),
 }
 
-const mockMessagesQuery = {
-  request: {
-    query: GET_ROOM_MESSAGES,
-    variables: { messageRoomId: 'room1' },
-  },
-  result: {
-    data: {
-      messages: mockMessages,
-    },
-  },
-}
+// Mock query object for reference (not used directly but kept for documentation)
+// const mockMessagesQuery = {
+//   request: {
+//     query: GET_ROOM_MESSAGES,
+//     variables: { messageRoomId: 'room1' },
+//   },
+//   result: {
+//     data: {
+//       messages: mockMessages,
+//     },
+//   },
+// }
 
 const mockPostRoom: ChatRoom = {
   _id: 'room2',
@@ -211,18 +212,6 @@ describe('MessageItemList', () => {
   })
 
   it('renders quote header for POST type rooms', async () => {
-    const postMessagesQuery = {
-      request: {
-        query: GET_ROOM_MESSAGES,
-        variables: { messageRoomId: 'room2' },
-      },
-      result: {
-        data: {
-          messages: mockMessages,
-        },
-      },
-    }
-
     render(<MessageItemList room={mockPostRoom} />)
 
     await waitFor(() => {

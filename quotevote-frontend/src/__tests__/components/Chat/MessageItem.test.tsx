@@ -11,7 +11,6 @@
 import { render, screen, fireEvent, waitFor } from '@/__tests__/utils/test-utils'
 import MessageItem from '@/components/Chat/MessageItem'
 import { useAppStore } from '@/store'
-import { DELETE_MESSAGE } from '@/graphql/mutations'
 import type { ChatMessage } from '@/types/chat'
 
 // Mock Zustand store
@@ -21,10 +20,10 @@ jest.mock('@/store', () => ({
 
 // Mock useMutation from Apollo Client
 const mockMutate = jest.fn().mockResolvedValue({ data: { deleteMessage: { _id: 'msg1' } } })
-const mockUseMutation = jest.fn(() => [mockMutate, { loading: false, error: null }])
+const mockUseMutation = jest.fn((_mutation: unknown, _options?: unknown) => [mockMutate, { loading: false, error: null }])
 jest.mock('@apollo/client/react', () => ({
   ...jest.requireActual('@apollo/client/react'),
-  useMutation: (...args: unknown[]) => mockUseMutation(...args),
+  useMutation: (mutation: unknown, options?: unknown) => mockUseMutation(mutation, options),
 }))
 
 // Mock Avatar component
@@ -80,19 +79,20 @@ const mockOtherMessage: ChatMessage & { user?: { _id?: string; name?: string; us
   readBy: [],
 }
 
-const mockDeleteMutation = {
-  request: {
-    query: DELETE_MESSAGE,
-    variables: { messageId: 'msg1' },
-  },
-  result: {
-    data: {
-      deleteMessage: {
-        success: true,
-      },
-    },
-  },
-}
+// Mock mutation object for reference (not used directly but kept for documentation)
+// const mockDeleteMutation = {
+//   request: {
+//     query: DELETE_MESSAGE,
+//     variables: { messageId: 'msg1' },
+//   },
+//   result: {
+//     data: {
+//       deleteMessage: {
+//         success: true,
+//       },
+//     },
+//   },
+// }
 
 describe('MessageItem', () => {
   beforeEach(() => {

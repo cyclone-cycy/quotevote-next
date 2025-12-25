@@ -11,8 +11,6 @@
 import { render, screen, fireEvent, waitFor } from '@/__tests__/utils/test-utils'
 import PostChatMessage from '@/components/PostChat/PostChatMessage'
 import { useAppStore } from '@/store'
-import { DELETE_MESSAGE } from '@/graphql/mutations'
-import { GET_MESSAGE_REACTIONS } from '@/graphql/queries'
 import type { PostChatMessageProps } from '@/types/postChat'
 
 // Mock Zustand store
@@ -23,11 +21,11 @@ jest.mock('@/store', () => ({
 // Mock useQuery and useMutation from Apollo Client
 const mockUseQuery = jest.fn()
 const mockMutate = jest.fn().mockResolvedValue({ data: { deleteMessage: { _id: 'msg1' } } })
-const mockUseMutation = jest.fn(() => [mockMutate, { loading: false, error: null }])
+const mockUseMutation = jest.fn((_mutation: unknown, _options?: unknown) => [mockMutate, { loading: false, error: null }])
 jest.mock('@apollo/client/react', () => ({
   ...jest.requireActual('@apollo/client/react'),
-  useQuery: (...args: unknown[]) => mockUseQuery(...args),
-  useMutation: (...args: unknown[]) => mockUseMutation(...args),
+  useQuery: (query: unknown, options?: unknown) => mockUseQuery(query, options),
+  useMutation: (mutation: unknown, options?: unknown) => mockUseMutation(mutation, options),
 }))
 
 // Mock next/navigation
@@ -100,31 +98,32 @@ const mockOwnMessage: PostChatMessageProps['message'] = {
   },
 }
 
-const mockGetReactionsQuery = {
-  request: {
-    query: GET_MESSAGE_REACTIONS,
-    variables: { messageId: 'msg1' },
-  },
-  result: {
-    data: {
-      messageReactions: [],
-    },
-  },
-}
+// Mock query/mutation objects for reference (not used directly but kept for documentation)
+// const mockGetReactionsQuery = {
+//   request: {
+//     query: GET_MESSAGE_REACTIONS,
+//     variables: { messageId: 'msg1' },
+//   },
+//   result: {
+//     data: {
+//       messageReactions: [],
+//     },
+//   },
+// }
 
-const mockDeleteMutation = {
-  request: {
-    query: DELETE_MESSAGE,
-    variables: { messageId: 'msg1' },
-  },
-  result: {
-    data: {
-      deleteMessage: {
-        _id: 'msg1',
-      },
-    },
-  },
-}
+// const mockDeleteMutation = {
+//   request: {
+//     query: DELETE_MESSAGE,
+//     variables: { messageId: 'msg1' },
+//   },
+//   result: {
+//     data: {
+//       deleteMessage: {
+//         _id: 'msg1',
+//       },
+//     },
+//   },
+// }
 
 describe('PostChatMessage', () => {
   beforeEach(() => {

@@ -100,31 +100,32 @@ const mockCurrentUser = {
   username: 'currentuser',
 }
 
-const mockChatRoomsQuery = {
-  request: {
-    query: GET_CHAT_ROOMS,
-  },
-  result: {
-    data: {
-      messageRooms: [mockRoom],
-    },
-  },
-}
+// Mock query objects for reference (not used directly but kept for documentation)
+// const mockChatRoomsQuery = {
+//   request: {
+//     query: GET_CHAT_ROOMS,
+//   },
+//   result: {
+//     data: {
+//       messageRooms: [mockRoom],
+//     },
+//   },
+// }
 
-const mockRosterQuery = {
-  request: {
-    query: GET_ROSTER,
-  },
-  result: {
-    data: {
-      roster: {
-        buddies: [],
-        pendingRequests: [],
-        blockedUsers: [],
-      },
-    },
-  },
-}
+// const mockRosterQuery = {
+//   request: {
+//     query: GET_ROSTER,
+//   },
+//   result: {
+//     data: {
+//       roster: {
+//         buddies: [],
+//         pendingRequests: [],
+//         blockedUsers: [],
+//       },
+//     },
+//   },
+// }
 
 describe('MessageBox', () => {
   beforeEach(() => {
@@ -180,16 +181,12 @@ describe('MessageBox', () => {
       return selector(state)
     })
 
-    const mocks = [mockChatRoomsQuery, mockRosterQuery]
-
     render(<MessageBox />)
 
     expect(screen.getByText('No room selected')).toBeInTheDocument()
   })
 
   it('renders room header with correct title and avatar', async () => {
-    const mocks = [mockChatRoomsQuery, mockRosterQuery]
-
     render(<MessageBox />)
 
     await waitFor(() => {
@@ -212,8 +209,6 @@ describe('MessageBox', () => {
       return selector(state)
     })
 
-    const mocks = [mockChatRoomsQuery, mockRosterQuery]
-
     render(<MessageBox />)
 
     await waitFor(() => {
@@ -227,8 +222,6 @@ describe('MessageBox', () => {
   })
 
   it('renders MessageItemList and MessageSend components when room is selected', async () => {
-    const mocks = [mockChatRoomsQuery, mockRosterQuery]
-
     render(<MessageBox />)
 
     await waitFor(() => {
