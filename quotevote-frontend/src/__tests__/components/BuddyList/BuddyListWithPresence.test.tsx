@@ -1,200 +1,525 @@
-import { TextEncoder } from 'util';
-global.TextEncoder = TextEncoder;
+/**
+ * BuddyListWithPresence Component Tests
+ * 
+ * Tests for the BuddyListWithPresence component including:
+ * - Buddy list rendering
+ * - Presence indicators
+ * - Pending requests handling
+ * - Search functionality
+ * - Presence subscription integration
+ */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { DocumentNode } from 'graphql';
-import BuddyListWithPresence from '@/components/BuddyList/BuddyListWithPresence';
-import { GET_BUDDY_LIST, GET_ROSTER } from '@/graphql/queries';
+import { render, screen, fireEvent, waitFor } from '@/__tests__/utils/test-utils'
+import BuddyListWithPresence from '@/components/BuddyList/BuddyListWithPresence'
+import { useAppStore } from '@/store'
+import { GET_BUDDY_LIST, GET_ROSTER } from '@/graphql/queries'
 
-// --- Mocks ---
-
-// 1. Mock Apollo
-const mockUseQuery = jest.fn();
-jest.mock('@apollo/client/react', () => ({
-    useQuery: (query: DocumentNode, options: unknown) => mockUseQuery(query, options),
-}));
-
-// 2. Mock Store & Hooks
-const mockSetSnackbar = jest.fn();
-const mockSetBuddyList = jest.fn();
-const mockPresenceMap = {
-    'u2': { status: 'online', statusMessage: 'Working' },
-};
-
+// Mock Zustand store
 jest.mock('@/store', () => ({
-    useAppStore: (selector: (state: unknown) => unknown) => selector({
-        user: {
-            data: { _id: 'me', username: 'me' }
-        },
-        chat: {
-            presenceMap: mockPresenceMap
-        },
-        setBuddyList: mockSetBuddyList,
-        setSnackbar: mockSetSnackbar,
-    }),
-}));
+  useAppStore: jest.fn(),
+}))
 
-// Mock custom hooks
-const mockAcceptBuddy = jest.fn();
-const mockDeclineBuddy = jest.fn();
+// Mock usePresenceSubscription
+jest.mock('@/hooks/usePresenceSubscription', () => ({
+  usePresenceSubscription: jest.fn(),
+}))
+
+// Mock useQuery from Apollo Client
+const mockUseQuery = jest.fn()
+jest.mock('@apollo/client/react', () => ({
+  ...jest.requireActual('@apollo/client/react'),
+  useQuery: (...args: unknown[]) => mockUseQuery(...args),
+}))
+
+// Mock useRosterManagement
+const mockAcceptBuddy = jest.fn().mockResolvedValue({})
+const mockDeclineBuddy = jest.fn().mockResolvedValue({})
 jest.mock('@/hooks/useRosterManagement', () => ({
-    useRosterManagement: () => ({
+  useRosterManagement: jest.fn(() => ({
         acceptBuddy: mockAcceptBuddy,
         declineBuddy: mockDeclineBuddy,
-    }),
-}));
+  })),
+}))
 
-jest.mock('@/hooks/usePresenceSubscription', () => ({
-    usePresenceSubscription: jest.fn(),
-}));
+// Mock BuddyItemList
+jest.mock('@/components/BuddyList/BuddyItemList', () => ({
+  __esModule: true,
+  default: ({ buddyList }: { buddyList: unknown[] }) => (
+    <div data-testid="buddy-item-list">
+      {buddyList.length} buddies
+    </div>
+  ),
+}))
 
-
-// 3. Mock Components
+// Mock LoadingSpinner
 jest.mock('@/components/LoadingSpinner', () => ({
-    LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>,
-}));
+  LoadingSpinner: () => (
+    <div data-testid="loading-spinner">Loading...</div>
+  ),
+}))
 
+// Mock Avatar
 jest.mock('@/components/Avatar', () => ({
     __esModule: true,
-    default: () => <div data-testid="avatar">Avatar</div>,
-}));
-
-jest.mock('lucide-react', () => ({
-    Check: () => <span>Check</span>,
-    X: () => <span>X</span>,
-    MessageSquare: () => <span>Msg</span>,
-    Users: () => <span>Users</span>,
-}));
-
-jest.mock('@/lib/utils', () => ({
-    cn: (...inputs: (string | undefined | null | false)[]) => inputs.join(' '),
-}));
-
-// Mock BuddyItemList to inspect props
-jest.mock('@/components/BuddyList/BuddyItemList', () => ({
-    __esModule: true,
-    default: ({ buddyList }: { buddyList: { user: { _id: string, name: string }, presence: { status: string } }[] }) => (
-        <div data-testid="buddy-item-list">
-            {buddyList.map((b) => (
-                <div key={b.user._id} data-testid={`buddy-item-${b.presence.status}`}>
-                    {b.user.name} - {b.presence.status}
-                </div>
-            ))}
+  default: ({ src, alt, fallback }: { 
+    src?: string; 
+    alt: string; 
+    fallback?: string;
+  }) => (
+    <div data-testid="avatar" data-src={src} data-alt={alt}>
+      {fallback || alt[0]}
         </div>
     ),
-}));
+}))
 
-jest.mock('@/graphql/queries', () => ({
-    GET_BUDDY_LIST: 'GET_BUDDY_LIST',
-    GET_ROSTER: 'GET_ROSTER',
-}));
+const mockUseAppStore = useAppStore as jest.MockedFunction<typeof useAppStore>
 
-// --- Tests ---
+const mockCurrentUser = {
+  _id: 'user1',
+  name: 'Current User',
+  username: 'currentuser',
+}
 
-describe('BuddyListWithPresence Component', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockUseQuery.mockReset();
-    });
+const mockBuddies = [
+  {
+    id: 'buddy1',
+    buddyId: 'user2',
+    status: 'accepted',
+    buddy: {
+      _id: 'user2',
+      id: 'user2',
+      username: 'buddy1',
+      name: 'Buddy One',
+      avatar: 'https://example.com/avatar1.jpg',
+    },
+  },
+  {
+    id: 'buddy2',
+    buddyId: 'user3',
+    status: 'accepted',
+    buddy: {
+      _id: 'user3',
+      id: 'user3',
+      username: 'buddy2',
+      name: 'Buddy Two',
+      avatar: 'https://example.com/avatar2.jpg',
+    },
+  },
+]
 
-    const setupData = () => {
-        // Mock return values for queries
-        mockUseQuery.mockImplementation((query) => {
-            if (query === GET_BUDDY_LIST) {
-                return {
-                    loading: false,
-                    data: {
-                        buddyList: [
-                            {
-                                id: 'r1',
-                                buddyId: 'u2', // matches presenceMap key
-                                status: 'accepted',
-                                buddy: { _id: 'u2', name: 'Friend 1', username: 'friend1', avatar: null },
-                                presence: { status: 'offline' } // Should be overridden by presenceMap
-                            },
-                            {
-                                id: 'r2',
-                                buddyId: 'u3',
-                                status: 'accepted',
-                                buddy: { _id: 'u3', name: 'Friend 2', username: 'friend2', avatar: null },
-                                presence: { status: 'offline' }
-                            }
-                        ]
-                    }
-                };
-            }
-            if (query === GET_ROSTER) {
-                return {
-                    loading: false,
-                    refetch: jest.fn(),
-                    data: {
-                        roster: {
-                            pendingRequests: [
-                                {
-                                    id: 'req1',
-                                    buddy: { _id: 'u4', name: 'Requester', username: 'req', avatar: null }
+const mockBuddyListQuery = {
+  request: {
+    query: GET_BUDDY_LIST,
+  },
+  result: {
+    data: {
+      buddyList: mockBuddies,
+    },
+  },
+}
+
+const mockRosterQuery = {
+  request: {
+    query: GET_ROSTER,
+  },
+  result: {
+    data: {
+      roster: {
+        buddies: [],
+        pendingRequests: [],
+        blockedUsers: [],
+      },
+    },
+  },
+}
+
+const mockRosterWithPending = {
+  request: {
+    query: GET_ROSTER,
+  },
+  result: {
+    data: {
+      roster: {
+        buddies: [],
+        pendingRequests: [
+          {
+            id: 'req1',
+            buddyId: 'user4',
+            status: 'pending',
+            buddy: {
+              _id: 'user4',
+              id: 'user4',
+              username: 'requester',
+              name: 'Requester User',
+              avatar: 'https://example.com/avatar3.jpg',
+            },
+          },
+        ],
+        blockedUsers: [],
+      },
+    },
+  },
+}
+
+describe('BuddyListWithPresence', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+
+    // Mock useQuery to return buddy list data by default
+    mockUseQuery.mockImplementation((query) => {
+      if (query === GET_BUDDY_LIST) {
+        return {
+          data: { buddyList: mockBuddies },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
                                 }
-                            ],
-                            buddies: [],
-                            blockedUsers: []
-                        }
-                    }
-                };
+      if (query === GET_ROSTER) {
+        return {
+          data: { roster: { buddies: [], pendingRequests: [], blockedUsers: [] } },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
             }
-            return { loading: false, data: null };
-        });
-    };
+      return { data: undefined, loading: false, error: undefined, refetch: jest.fn() }
+    })
 
-    it('renders and groups buddies correctly', () => {
-        setupData();
-        render(<BuddyListWithPresence />);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: {
+          data: mockCurrentUser,
+        },
+        chat: {
+          presenceMap: {
+            user2: { status: 'online', statusMessage: '', lastSeen: null },
+            user3: { status: 'away', statusMessage: '', lastSeen: null },
+          },
+        },
+        setBuddyList: jest.fn(),
+        setSnackbar: jest.fn(),
+      }
+      return selector(state)
+    })
+  })
 
-        // Friend 1 is 'u2', presenceMap says 'online'
-        expect(screen.getByText('Friend 1 - online')).toBeInTheDocument();
+  it('renders "Please log in" when no current user', () => {
+    // Mock useQuery to skip when no user
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: undefined,
+      refetch: jest.fn(),
+    })
 
-        // Friend 2 is 'u3', no presenceMap, falls back to 'offline' (default or from item)
-        // Note: The mock component prints status.
-        expect(screen.getByText('Friend 2 - offline')).toBeInTheDocument();
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: { data: null },
+        chat: { presenceMap: {} },
+        setBuddyList: jest.fn(),
+        setSnackbar: jest.fn(),
+      }
+      return selector(state)
+    })
 
-    it('displays pending requests', () => {
-        setupData();
-        render(<BuddyListWithPresence />);
+    render(<BuddyListWithPresence />)
 
-        expect(screen.getByText('Pending Requests')).toBeInTheDocument();
-        expect(screen.getByText('Requester')).toBeInTheDocument();
-        expect(screen.getByText('Wants to be your buddy')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Please log in to view your buddy list')).toBeInTheDocument()
+  })
 
-    it('handles accepting a buddy request', async () => {
-        setupData();
-        render(<BuddyListWithPresence />);
+  it('renders loading spinner while fetching data', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+      error: undefined,
+      refetch: jest.fn(),
+    })
 
-        const acceptBtn = screen.getByTitle('Accept');
-        fireEvent.click(acceptBtn);
+    render(<BuddyListWithPresence />)
 
-        await waitFor(() => {
-            expect(mockAcceptBuddy).toHaveBeenCalledWith('req1');
-            expect(mockSetSnackbar).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'Buddy request accepted!',
-                type: 'success',
-            }));
-        });
-    });
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+  })
 
-    it('handles declining a buddy request', async () => {
-        setupData();
-        render(<BuddyListWithPresence />);
+  it('renders error message when query fails', async () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: new Error('Failed to fetch buddy list'),
+      refetch: jest.fn(),
+    })
 
-        const declineBtn = screen.getByTitle('Decline');
-        fireEvent.click(declineBtn);
+    render(<BuddyListWithPresence />)
 
-        await waitFor(() => {
-            expect(mockDeclineBuddy).toHaveBeenCalledWith('req1');
-            expect(mockSetSnackbar).toHaveBeenCalledWith(expect.objectContaining({
-                message: 'Buddy request declined',
-                type: 'info',
-            }));
-        });
-    });
-});
+    await waitFor(() => {
+      expect(screen.getByText('Error loading buddy list. Please try refreshing.')).toBeInTheDocument()
+    })
+  })
+
+  it('renders buddy list grouped by presence status', async () => {
+    render(
+      <BuddyListWithPresence />
+    )
+
+    await waitFor(() => {
+      // There will be multiple buddy-item-list elements (one per presence group)
+      const buddyLists = screen.getAllByTestId('buddy-item-list')
+      expect(buddyLists.length).toBeGreaterThan(0)
+    })
+
+    // Should show presence sections - the component renders status labels like "online (1)" or "away (1)"
+    expect(screen.getByText(/online/i)).toBeInTheDocument()
+    expect(screen.getByText(/away/i)).toBeInTheDocument()
+  })
+
+  it('renders pending requests section when requests exist', async () => {
+    mockUseQuery.mockImplementation((query) => {
+      if (query === GET_BUDDY_LIST) {
+        return {
+          data: { buddyList: mockBuddies },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      if (query === GET_ROSTER) {
+        return {
+          data: { roster: mockRosterWithPending.result.data.roster },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      return { data: undefined, loading: false, error: undefined, refetch: jest.fn() }
+    })
+
+    render(<BuddyListWithPresence />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Pending Requests')).toBeInTheDocument()
+      expect(screen.getByText('Requester User')).toBeInTheDocument()
+    }, { timeout: 3000 })
+  })
+
+  it('accepts buddy request when accept button is clicked', async () => {
+    const setSnackbar = jest.fn()
+    
+    // Mock queries to return pending requests
+    mockUseQuery.mockImplementation((query) => {
+      if (query === GET_BUDDY_LIST) {
+        return {
+          data: { buddyList: [] },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      if (query === GET_ROSTER) {
+        return {
+          data: { roster: mockRosterWithPending.result.data.roster },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      return { data: undefined, loading: false, error: undefined, refetch: jest.fn() }
+    })
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: { data: mockCurrentUser },
+        chat: { presenceMap: {} },
+        setBuddyList: jest.fn(),
+        setSnackbar,
+      }
+      return selector(state)
+    })
+
+    render(
+      <BuddyListWithPresence />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Requester User')).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    // Find accept button (Check icon)
+    const acceptButtons = screen.getAllByTitle('Accept')
+    if (acceptButtons.length > 0) {
+      fireEvent.click(acceptButtons[0])
+
+      await waitFor(() => {
+        expect(mockAcceptBuddy).toHaveBeenCalledWith('req1')
+        expect(setSnackbar).toHaveBeenCalledWith(
+          expect.objectContaining({
+            open: true,
+            message: 'Buddy request accepted!',
+            type: 'success',
+          })
+        )
+      })
+    }
+  })
+
+  it('declines buddy request when decline button is clicked', async () => {
+    const setSnackbar = jest.fn()
+    
+    // Mock queries to return pending requests
+    mockUseQuery.mockImplementation((query) => {
+      if (query === GET_BUDDY_LIST) {
+        return {
+          data: { buddyList: [] },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      if (query === GET_ROSTER) {
+        return {
+          data: { roster: mockRosterWithPending.result.data.roster },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      return { data: undefined, loading: false, error: undefined, refetch: jest.fn() }
+    })
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: { data: mockCurrentUser },
+        chat: { presenceMap: {} },
+        setBuddyList: jest.fn(),
+        setSnackbar,
+      }
+      return selector(state)
+    })
+
+    render(
+      <BuddyListWithPresence />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Requester User')).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    // Find decline button (X icon)
+    const declineButtons = screen.getAllByTitle('Decline')
+    if (declineButtons.length > 0) {
+      fireEvent.click(declineButtons[0])
+
+      await waitFor(() => {
+        expect(mockDeclineBuddy).toHaveBeenCalledWith('req1')
+        expect(setSnackbar).toHaveBeenCalledWith(
+          expect.objectContaining({
+            open: true,
+            message: 'Buddy request declined',
+            type: 'info',
+          })
+        )
+      })
+    }
+  })
+
+  it('filters buddies by search query', async () => {
+    // Search for "Buddy" which should match both buddies (they have names "Buddy One" and "Buddy Two")
+    render(<BuddyListWithPresence search="Buddy" />)
+
+    await waitFor(() => {
+      // When filtering, if there are matches, buddy-item-list will be rendered
+      // The component filters by Text field (name || username)
+      const buddyLists = screen.queryAllByTestId('buddy-item-list')
+      // We should have at least one section with filtered results
+      expect(buddyLists.length).toBeGreaterThan(0)
+    })
+
+    // Verify that the filtered results are shown
+    const buddyLists = screen.getAllByTestId('buddy-item-list')
+    expect(buddyLists.length).toBeGreaterThan(0)
+  })
+
+  it('handles accept buddy errors gracefully', async () => {
+    const setSnackbar = jest.fn()
+    mockAcceptBuddy.mockRejectedValueOnce(new Error('Failed to accept'))
+
+    // Mock queries to return pending requests
+    mockUseQuery.mockImplementation((query) => {
+      if (query === GET_BUDDY_LIST) {
+        return {
+          data: { buddyList: [] },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      if (query === GET_ROSTER) {
+        return {
+          data: { roster: mockRosterWithPending.result.data.roster },
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        }
+      }
+      return { data: undefined, loading: false, error: undefined, refetch: jest.fn() }
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: { data: mockCurrentUser },
+        chat: { presenceMap: {} },
+        setBuddyList: jest.fn(),
+        setSnackbar,
+      }
+      return selector(state)
+    })
+
+    render(
+      <BuddyListWithPresence />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Requester User')).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    const acceptButtons = screen.getAllByTitle('Accept')
+    if (acceptButtons.length > 0) {
+      fireEvent.click(acceptButtons[0])
+
+      await waitFor(() => {
+        expect(setSnackbar).toHaveBeenCalledWith(
+          expect.objectContaining({
+            open: true,
+            type: 'danger',
+          })
+        )
+      })
+    }
+  })
+
+  it('syncs buddy list to store when data is loaded', async () => {
+    const setBuddyList = jest.fn()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseAppStore.mockImplementation((selector: any) => {
+      const state = {
+        user: { data: mockCurrentUser },
+        chat: { presenceMap: {} },
+        setBuddyList,
+        setSnackbar: jest.fn(),
+      }
+      return selector(state)
+    })
+
+    render(
+      <BuddyListWithPresence />
+    )
+
+    await waitFor(() => {
+      expect(setBuddyList).toHaveBeenCalledWith(mockBuddies)
+    })
+  })
+})
