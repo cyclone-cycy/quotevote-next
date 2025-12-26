@@ -50,6 +50,20 @@ if (typeof window !== 'undefined') {
     writable: true,
     value: jest.fn(),
   })
+  
+  // Mock window.location.origin for components that need it
+  if (!window.location.origin) {
+    Object.defineProperty(window.location, 'origin', {
+      writable: false,
+      configurable: true,
+      value: 'http://localhost',
+    })
+  }
+  
+  // Mock Element.prototype.scrollIntoView for components that use it
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = jest.fn()
+  }
 }
 
 // Mock window.matchMedia (only in jsdom environment)

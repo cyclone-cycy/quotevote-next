@@ -42,7 +42,7 @@ export default function PostActionCard({
   const sharedComment = useAppStore((state) => state.ui.sharedComment)
 
   const { user: actionUser, content, created, _id } = postAction
-  const { username, avatar, name } = actionUser
+  const { username, avatar, name } = actionUser || {}
   const parsedDate = parseCommentDate(new Date(created))
   const voteType = get(postAction, 'type') as string | undefined
   const quote = get(postAction, 'quote') as string | undefined
@@ -165,7 +165,9 @@ export default function PostActionCard({
   }, [commentSelected, _id, sharedComment, setFocusedComment])
 
   const handleRedirectToProfile = () => {
-    router.push(`/Profile/${username}`)
+    if (username) {
+      router.push(`/Profile/${username}`)
+    }
   }
 
   // Determine vote icon and tags
@@ -212,8 +214,8 @@ export default function PostActionCard({
     )
   }
 
-  const userId = user._id || user.id
-  const isOwner = userId === actionUser._id || user.admin
+  const userId = user?._id || user?.id
+  const isOwner = userId === actionUser?._id || user?.admin
   const avatarSrc = typeof avatar === 'string' ? avatar : undefined
   const displayName = name || username || 'Unknown'
 
