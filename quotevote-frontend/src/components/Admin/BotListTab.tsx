@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/app/components/ui/select'
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import Avatar from '@/components/Avatar'
 import { GET_BOT_REPORTED_USERS } from '@/graphql/queries'
@@ -179,7 +179,7 @@ export default function BotListTab() {
             <Label htmlFor="sort-by" className="text-sm whitespace-nowrap">
               Sort By:
             </Label>
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortByOption)}>
+            <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as SortByOption)}>
               <SelectTrigger id="sort-by" className="w-[180px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
