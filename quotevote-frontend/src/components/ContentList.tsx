@@ -273,7 +273,7 @@ export default function ContentList({
             </div>
             <h3 className="text-lg font-semibold">No content found</h3>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2">
-              We couldn't find any content matching your search filters. Try adjusting your search query.
+              We couldn&apos;t find any content matching your search filters. Try adjusting your search query.
             </p>
             <Button
               variant="link"
