@@ -8,8 +8,9 @@ import { useQuery } from '@apollo/client/react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getDomain } from '@/lib/utils/sanitizeUrl'
 import { useAppStore } from '@/store'
 import AvatarDisplay from '@/components/Avatar'
 import { GET_GROUP } from '@/graphql/queries'
@@ -58,6 +59,7 @@ export default function PostCard({
   quotes = [],
   messageRoom,
   groupId,
+  citationUrl,
 }: PostCardProps) {
   const router = useRouter()
   const setSelectedPost = useAppStore((state) => state.setSelectedPost)
@@ -183,6 +185,20 @@ export default function PostCard({
               </span>
             )}
           </div>
+
+          {/* Citation Link Badge */}
+          {citationUrl && (
+            <a
+              href={citationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-medium px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors w-fit"
+            >
+              <ExternalLink className="h-3 w-3" />
+              {getDomain(citationUrl)}
+            </a>
+          )}
 
           <div className="space-y-2">
             <div

@@ -173,6 +173,7 @@ export const SUBMIT_POST = gql`
     addPost(post: $post) {
       _id
       url
+      citationUrl
     }
   }
 `

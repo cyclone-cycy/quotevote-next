@@ -58,7 +58,7 @@ export function Eyebrow() {
 
         case "not_requested":
           await handleNewInviteRequest(email);
-          setFeedback("Your request has been received! You’ll be notified once approved.");
+          setFeedback("Your request has been received! You'll be notified once approved.");
           break;
 
         case "requested_pending":

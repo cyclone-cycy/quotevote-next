@@ -3,6 +3,7 @@
  */
 
 import { z } from 'zod'
+import { containsUrl, sanitizeUrl } from '@/lib/utils/sanitizeUrl'
 
 export const submitPostSchema = z.object({
   title: z
@@ -12,7 +13,22 @@ export const submitPostSchema = z.object({
   text: z
     .string()
     .min(1, 'Post content is required')
-    .max(10000, 'Post content should be less than 10000 characters'),
+    .max(10000, 'Post content should be less than 10000 characters')
+    .refine(
+      (value) => !containsUrl(value),
+      {
+        message: 'Links are not allowed in the post body. Use the Citation URL field instead.',
+      }
+    ),
+  citationUrl: z
+    .string()
+    .optional()
+    .refine(
+      (value) => !value || sanitizeUrl(value) !== null,
+      {
+        message: 'Invalid URL format. Please enter a valid http or https URL.',
+      }
+    ),
   group: z
     .union([
       z.object({
@@ -43,4 +59,3 @@ export const submitPostSchema = z.object({
 })
 
 export type SubmitPostFormValues = z.infer<typeof submitPostSchema>
-

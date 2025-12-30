@@ -138,6 +138,7 @@ export const GET_POST = gql`
       title
       text
       url
+      citationUrl
       upvotes
       downvotes
       approvedBy
@@ -248,6 +249,7 @@ export const GET_TOP_POSTS = gql`
         bookmarkedBy
         created
         url
+        citationUrl
         rejectedBy
         approvedBy
         creator {
@@ -322,6 +324,7 @@ export const GET_PAGINATED_POSTS = gql`
         bookmarkedBy
         created
         url
+        citationUrl
         rejectedBy
         approvedBy
         creator {
@@ -391,6 +394,7 @@ export const GET_FRIENDS_POSTS = gql`
         bookmarkedBy
         created
         url
+        citationUrl
         creator {
           name
           username
@@ -469,6 +473,7 @@ export const GET_FEATURED_POSTS = gql`
         bookmarkedBy
         created
         url
+        citationUrl
         creator {
           name
           username

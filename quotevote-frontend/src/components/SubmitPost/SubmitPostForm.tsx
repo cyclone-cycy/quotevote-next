@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@apollo/client/react'
-// Note: Router not needed in form component - navigation handled in alert
-import { X, Loader2 } from 'lucide-react'
-// Note: isEmpty removed as it's not used
+import { X, Loader2, Link2, Info, AlertTriangle } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -20,9 +18,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useAppStore } from '@/store'
 import { useResponsive } from '@/hooks/useResponsive'
 import { submitPostSchema, type SubmitPostFormValues } from '@/lib/validation/submitPostSchema'
+import { sanitizeUrl } from '@/lib/utils/sanitizeUrl'
 import { CREATE_GROUP, SUBMIT_POST } from '@/graphql/mutations'
 import { SubmitPostAlert } from './SubmitPostAlert'
 import type { SubmitPostFormProps } from '@/types/components'
@@ -39,6 +45,7 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
   const [isCreatingGroup, setIsCreatingGroup] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [isPasting, setIsPasting] = useState(false)
+  const errorAlertRef = useRef<HTMLDivElement>(null)
 
   const {
     register,
@@ -51,8 +58,16 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
     defaultValues: {
       title: '',
       text: '',
+      citationUrl: '',
     },
   })
+
+  // Auto-scroll to error alert when URL-in-body error appears
+  useEffect(() => {
+    if (errors.text?.message?.includes('Links are not allowed') && errorAlertRef.current) {
+      errorAlertRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [errors.text])
 
   const parseURLContent = async (url: string) => {
     try {
@@ -80,7 +95,10 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
   }
 
   const onSubmit = async (values: SubmitPostFormValues) => {
-    const { title, text, group } = values
+    const { title, text, group, citationUrl } = values
+
+    // Sanitize citation URL before submission
+    const sanitizedCitationUrl = citationUrl ? sanitizeUrl(citationUrl) : null
 
     // Handle case where group might be a string (typed value)
     const groupData =
@@ -134,6 +152,7 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
             text,
             title,
             groupId: postGroupId,
+            citationUrl: sanitizedCitationUrl,
           },
         },
       })
@@ -234,6 +253,40 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
                 )}
               </div>
 
+              {/* Citation URL Field */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="citationUrl">Citation URL <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-xs">
+                        <p>Optional: Add a citation link to credit the original source. No other URLs are allowed in the post body.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  id="citationUrl"
+                  placeholder="https://example.com/article"
+                  {...register('citationUrl')}
+                  className={cn(errors.citationUrl && 'border-destructive')}
+                />
+                {errors.citationUrl && (
+                  <p className="text-sm text-destructive">{errors.citationUrl.message}</p>
+                )}
+              </div>
+
               <div className="border-t" />
 
               <div className="flex-1 flex flex-col min-h-0 space-y-2">
@@ -256,7 +309,17 @@ export function SubmitPostForm({ options = [], user, setOpen }: SubmitPostFormPr
                   />
                 </div>
                 {errors.text && (
-                  <p className="text-sm text-destructive">{errors.text.message}</p>
+                  errors.text.message?.includes('Links are not allowed') ? (
+                    <Alert ref={errorAlertRef} variant="destructive" className="mt-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      <AlertTitle className="text-base font-semibold">⚠️ No Links Allowed in Body</AlertTitle>
+                      <AlertDescription className="text-sm">
+                        {errors.text.message}
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <p className="text-sm text-destructive">{errors.text.message}</p>
+                  )
                 )}
               </div>
             </div>
