@@ -726,6 +726,17 @@ export interface RequestAccessFormProps {
   onSuccess?: () => void;
 }
 
+export interface RequestInviteDialogProps {
+  /**
+   * Whether the dialog is open
+   */
+  open: boolean;
+  /**
+   * Callback function called when dialog should close
+   */
+  onClose: () => void;
+}
+
 export interface CardDetails {
   cardNumber: string;
   expiry: string;

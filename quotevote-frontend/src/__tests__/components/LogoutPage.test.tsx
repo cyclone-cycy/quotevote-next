@@ -168,6 +168,10 @@ describe('LogoutPage Component', () => {
 
   describe('Error Handling', () => {
     it('still redirects to login page even when error occurs', async () => {
+      // Mock console.error to suppress expected error log
+      const originalError = console.error;
+      console.error = jest.fn();
+      
       mockApolloClient.resetStore.mockRejectedValueOnce(new Error('Test error'));
 
       render(<LogoutPage />);
@@ -181,9 +185,16 @@ describe('LogoutPage Component', () => {
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/auth/login');
       }, { timeout: 3000 });
+      
+      // Restore console.error
+      console.error = originalError;
     });
 
     it('handles errors gracefully and redirects', async () => {
+      // Mock console.error to suppress expected error log
+      const originalError = console.error;
+      console.error = jest.fn();
+      
       // Test that errors don't prevent logout
       mockApolloClient.resetStore.mockRejectedValueOnce(new Error('Test error'));
 
@@ -199,6 +210,9 @@ describe('LogoutPage Component', () => {
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith('/auth/login');
       }, { timeout: 3000 });
+      
+      // Restore console.error
+      console.error = originalError;
     });
   });
 
