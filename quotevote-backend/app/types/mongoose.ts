@@ -3,7 +3,7 @@
  * Document interfaces and schema-related types for MongoDB/Mongoose
  */
 
-import type { Document, Model, Schema, Types } from 'mongoose'
+import type { Document, Model, Types } from 'mongoose'
 import type * as Common from './common'
 
 // ============================================================================
@@ -96,7 +96,7 @@ export interface VoteLogDocument extends BaseDocument, Omit<Common.VoteLog, '_id
   postId: Types.ObjectId
 }
 
-export interface VoteLogModel extends Model<VoteLogDocument> {}
+export type VoteLogModel = Model<VoteLogDocument>
 
 // ============================================================================
 // Quote Document Interfaces
@@ -265,7 +265,7 @@ export interface UserReportDocument extends BaseDocument, Omit<Common.UserReport
   reporterId: Types.ObjectId
 }
 
-export interface UserReportModel extends Model<UserReportDocument> {}
+export type UserReportModel = Model<UserReportDocument>
 
 export interface BotReportDocument extends BaseDocument, Omit<Common.BotReport, '_id' | 'userId' | 'reporterId'> {
   _id: Types.ObjectId
@@ -273,7 +273,7 @@ export interface BotReportDocument extends BaseDocument, Omit<Common.BotReport, 
   reporterId: Types.ObjectId
 }
 
-export interface BotReportModel extends Model<BotReportDocument> {}
+export type BotReportModel = Model<BotReportDocument>
 
 // ============================================================================
 // Collection Document Interfaces
@@ -285,7 +285,7 @@ export interface CollectionDocument extends BaseDocument, Omit<Common.Collection
   postIds?: Types.ObjectId[]
 }
 
-export interface CollectionModel extends Model<CollectionDocument> {}
+export type CollectionModel = Model<CollectionDocument>
 
 // ============================================================================
 // Content & Creator Document Interfaces
@@ -295,13 +295,13 @@ export interface DomainDocument extends BaseDocument, Omit<Common.Domain, '_id'>
   _id: Types.ObjectId
 }
 
-export interface DomainModel extends Model<DomainDocument> {}
+export type DomainModel = Model<DomainDocument>
 
 export interface CreatorDocument extends BaseDocument, Omit<Common.Creator, '_id'> {
   _id: Types.ObjectId
 }
 
-export interface CreatorModel extends Model<CreatorDocument> {}
+export type CreatorModel = Model<CreatorDocument>
 
 export interface ContentDocument extends BaseDocument, Omit<Common.Content, '_id' | 'creatorId' | 'domainId'> {
   _id: Types.ObjectId
@@ -309,7 +309,7 @@ export interface ContentDocument extends BaseDocument, Omit<Common.Content, '_id
   domainId?: Types.ObjectId
 }
 
-export interface ContentModel extends Model<ContentDocument> {}
+export type ContentModel = Model<ContentDocument>
 
 // ============================================================================
 // Helper Types
@@ -351,10 +351,10 @@ export interface SchemaOptions {
   collection?: string
   toJSON?: {
     virtuals?: boolean
-    transform?: (doc: any, ret: any) => any
+    transform?: (doc: Document, ret: Record<string, unknown>) => Record<string, unknown>
   }
   toObject?: {
     virtuals?: boolean
-    transform?: (doc: any, ret: any) => any
+    transform?: (doc: Document, ret: Record<string, unknown>) => Record<string, unknown>
   }
 }
