@@ -162,30 +162,21 @@ export interface RouteParams {
 // ============================================================================
 
 /**
- * Common query parameters for list/pagination endpoints
+ * Common query parameters for pagination, search and filtering
  */
-export interface PaginationQuery {
+export interface QueryParams {
+  // Pagination
   limit?: string
   offset?: string
   page?: string
   pageSize?: string
   sort?: string
   order?: 'asc' | 'desc'
-}
-
-/**
- * Search query parameters
- */
-export interface SearchQuery extends PaginationQuery {
+  // Search
   q?: string
   query?: string
   searchKey?: string
-}
-
-/**
- * Filter query parameters
- */
-export interface FilterQuery extends PaginationQuery {
+  // Filters
   startDateRange?: string
   endDateRange?: string
   userId?: string
@@ -194,6 +185,13 @@ export interface FilterQuery extends PaginationQuery {
   status?: string
   type?: string
 }
+
+/** @deprecated Use QueryParams instead */
+export type PaginationQuery = Pick<QueryParams, 'limit' | 'offset' | 'page' | 'pageSize' | 'sort' | 'order'>
+/** @deprecated Use QueryParams instead */
+export type SearchQuery = Pick<QueryParams, 'limit' | 'offset' | 'page' | 'pageSize' | 'sort' | 'order' | 'q' | 'query' | 'searchKey'>
+/** @deprecated Use QueryParams instead */
+export type FilterQuery = QueryParams
 
 // ============================================================================
 // Response Body Types
