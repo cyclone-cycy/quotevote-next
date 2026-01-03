@@ -5,7 +5,6 @@
 
 import type { Request, Response } from 'express'
 import type * as Common from './common'
-import type * as Mongoose from './mongoose'
 
 /**
  * PubSub type from graphql-subscriptions
@@ -41,14 +40,13 @@ export interface GraphQLContext {
 // ============================================================================
 
 export interface DataLoaders {
-  userLoader: any // DataLoader<string, Mongoose.UserDocument>
-  postLoader: any // DataLoader<string, Mongoose.PostDocument>
-  commentLoader: any // DataLoader<string, Mongoose.CommentDocument>
-  voteLoader: any // DataLoader<string, Mongoose.VoteDocument>
-  quoteLoader: any // DataLoader<string, Mongoose.QuoteDocument>
-  messageRoomLoader: any // DataLoader<string, Mongoose.MessageRoomDocument>
-  notificationLoader: any // DataLoader<string, Mongoose.NotificationDocument>
-  // Add more loaders as needed
+  userLoader: any
+  postLoader: any
+  commentLoader: any
+  voteLoader: any
+  quoteLoader: any
+  messageRoomLoader: any
+  notificationLoader: any
 }
 
 // ============================================================================
