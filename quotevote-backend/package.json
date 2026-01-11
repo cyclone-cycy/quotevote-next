@@ -17,6 +17,7 @@
     "prisma:validate": "prisma validate --schema=./prisma/schema",
     "prisma:format": "prisma format --schema=./prisma/schema",
     "prisma:studio": "prisma db push --schema=./prisma/schema",
+    "prisma:health": "tsx scripts/prisma-health-check.ts",
     "postinstall": "prisma generate --schema=./prisma/schema"
   },
   "prisma": {
