@@ -14,3 +14,7 @@ export interface ContentListProps {
     isLoading?: boolean
     error?: string | null
 }
+
+export interface ContentCardProps {
+    item: ContentItem
+}

@@ -16,7 +16,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 
-import { ContentItem, ContentListProps } from '@/types/contentList'
+import { ContentListProps, ContentCardProps } from '@/types/contentList'
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,9 +38,6 @@ import { Badge } from '@/components/ui/badge'
 const ITEMS_PER_PAGE = 5
 
 // Extracted ContentCard component for better state management and reusability
-interface ContentCardProps {
-  item: ContentItem;
-}
 
 function ContentCard({ item }: ContentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
