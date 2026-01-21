@@ -1,46 +1,60 @@
 import winston from 'winston';
+import { LoggerOptions, GraphQLOperation, GraphQLLogContext } from '../../types/logger';
 
-// Interfaces
-export interface LoggerOptions {
-  level?: string;
-  service?: string;
-}
+const isProduction = process.env.NODE_ENV === 'production';
 
-export interface GraphQLOperation {
-  operationName?: string;
-  operationType?: string;
-  variables?: Record<string, unknown>;
-}
+/**
+ * Custom format for development
+ */
+const devFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.printf(({ level, message, timestamp, stack, ...meta }) => {
+    let logMsg = `${timestamp} ${level}: ${message}`;
+    if (stack) {
+      logMsg += `\n${stack}`;
+    }
+    if (Object.keys(meta).length > 0) {
+      logMsg += `\n${JSON.stringify(meta, null, 2)}`;
+    }
+    return logMsg;
+  })
+);
 
-export interface GraphQLContext {
-  userId?: string;
-  requestId?: string;
-  ip?: string;
-  userAgent?: string;
-  [key: string]: unknown;
-}
+/**
+ * JSON format for production
+ */
+const prodFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.json()
+);
 
 /**
  * Create and configure Winston logger instance
  */
 export function createWinstonLogger(options: LoggerOptions = {}): winston.Logger {
   const { level = process.env.LOG_LEVEL || 'info', service = 'quotevote-backend' } = options;
+
+  const transports: winston.transport[] = [
+    new winston.transports.Console({
+      format: isProduction ? prodFormat : devFormat,
+    }),
+  ];
+
+  // Add file logging if not in test environment (to avoid cluttering during tests)
+  // or if explicitly configured (could add env var like LOG_TO_FILE=true)
+  if (process.env.NODE_ENV !== 'test') {
+    transports.push(
+      new winston.transports.File({ filename: 'error.log', level: 'error' }),
+      new winston.transports.File({ filename: 'combined.log' })
+    );
+  }
+
   return winston.createLogger({
     level,
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.errors({ stack: true }),
-      winston.format.json(),
-    ),
     defaultMeta: { service },
-    transports: [
-      new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple(),
-        ),
-      }),
-    ],
+    transports,
   });
 }
 
@@ -48,6 +62,16 @@ export function createWinstonLogger(options: LoggerOptions = {}): winston.Logger
  * Shared logger instance - exported as singleton
  */
 export const logger = createWinstonLogger();
+
+/**
+ * Stream for Morgan (HTTP logging)
+ */
+export const stream = {
+  write: (message: string): void => {
+    // Morgan adds a newline at the end, so we trim it
+    logger.info(message.trim());
+  },
+};
 
 /**
  * Log a general message
@@ -72,7 +96,7 @@ export function logError(error: Error | string | unknown): void {
  */
 export function logGraphQLOperation(
   operation: GraphQLOperation,
-  context?: GraphQLContext,
+  context?: GraphQLLogContext,
   level: string = 'info'
 ): void {
   const logData: Record<string, unknown> = {
@@ -101,7 +125,7 @@ export function logGraphQLOperation(
 export function logGraphQLError(
   error: Error,
   operation?: GraphQLOperation,
-  context?: GraphQLContext
+  context?: GraphQLLogContext
 ): void {
   const logData: Record<string, unknown> = {
     error: error.message,
@@ -129,7 +153,7 @@ export function logGraphQLError(
 /**
  * Log GraphQL context information
  */
-export function logGraphQLContext(context: GraphQLContext, message?: string): void {
+export function logGraphQLContext(context: GraphQLLogContext, message?: string): void {
   logger.info(message || 'GraphQL Context', {
     userId: context.userId,
     requestId: context.requestId,
