@@ -309,7 +309,7 @@ export const refresh = async (req: Request, res: Response): Promise<Response | v
             accessToken,
             refreshToken, // Sending same or could rotate
         });
-    } catch (err: unknown) {
+    } catch {
         // Log error if needed, or just suppress
         return res.status(401).json({ message: 'Invalid or expired refresh token.' });
     }
@@ -329,21 +329,21 @@ export const verifyToken = async (authToken: string): Promise<JWTPayload> => {
     try {
         const decoded = jwt.verify(token, safeSecret) as JWTPayload;
         return decoded;
-    } catch (err: any) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        logger.error('Token verification failed', { error: (err as any).message });
+    } catch (err: unknown) {
+        const error = err as Error;
+        logger.error('Token verification failed', { error: error.message });
 
-        if (err.message === 'invalid issuer') {
+        if (error.message === 'invalid issuer') {
             throw new GraphQLError('Token issued cannot be used in this endpoint.', {
                 extensions: { code: 'UNAUTHENTICATED' },
             });
         }
 
-        if (err.name === 'JsonWebTokenError' || err.message === 'invalid signature') {
-            throw new GraphQLError(`Invalid access token: ${err.message}`, {
+        if (error.name === 'JsonWebTokenError' || error.message === 'invalid signature') {
+            throw new GraphQLError(`Invalid access token: ${error.message}`, {
                 extensions: { code: 'UNAUTHENTICATED' },
             });
-        } else if (err.name === 'TokenExpiredError') {
+        } else if (error.name === 'TokenExpiredError') {
             throw new GraphQLError('Access token has expired', {
                 extensions: { code: 'UNAUTHENTICATED' },
             });

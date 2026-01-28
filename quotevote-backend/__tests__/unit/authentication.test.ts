@@ -30,8 +30,8 @@ jest.mock('~/data/models/User', () => ({
 
 
 describe('Authentication Utils', () => {
-    let req: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    let res: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    let req: Partial<Request>;
+    let res: Partial<Response>;
     let json: jest.Mock;
     let status: jest.Mock;
     let send: jest.Mock;
@@ -179,7 +179,7 @@ describe('Authentication Utils', () => {
     describe('generateRefreshToken', () => {
         it('should generate a refresh token', () => {
             const payload = { userId: '123', username: 'test', email: 'test@test.com' };
-            const token = auth.generateRefreshToken(payload as any);
+            const token = auth.generateRefreshToken(payload);
             expect(jwt.sign).toHaveBeenCalledWith(
                 expect.objectContaining({ userId: '123', type: 'refresh' }),
                 expect.any(String),
@@ -229,7 +229,7 @@ describe('Authentication Utils', () => {
         it('should verify a valid token', async () => {
             const payload = { userId: '123' };
             (jwt.verify as jest.Mock).mockReturnValue(payload);
-            const result = await auth.verifyToken('Bearer valid_token'); // eslint-disable-line @typescript-eslint/no-explicit-any
+            const result = await auth.verifyToken('Bearer valid_token');
             expect(result).toEqual(payload);
         });
 

@@ -6,9 +6,21 @@ import http from 'http';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { solidResolvers } from './data/resolvers/solidResolvers';
-import type { GraphQLContext } from './types/graphql';
-import User from './data/models/User';
+import type { GraphQLContext, PubSub } from './types/graphql';
+
+// Temporary NoOp PubSub until real implementation
+const noOpPubSub: PubSub = {
+  publish: async () => { },
+  subscribe: async () => 0,
+  unsubscribe: () => { },
+  asyncIterableIterator: <T>() => {
+    const emptyIterator = (async function* () { })();
+    return emptyIterator as AsyncIterableIterator<T>;
+  }
+};
 import * as auth from './data/utils/authentication';
+import User from './data/models/User';
+import type * as Common from './types/common';
 
 // Load environment variables
 dotenv.config();
@@ -39,40 +51,11 @@ async function startServer() {
         solidConnectionStatus: SolidConnectionStatus
       }
 
-      type Mutation {
-        solidStartConnect(issuer: String!): SolidStartConnectResponse
-        solidFinishConnect(code: String!, state: String!, redirectUri: String!): SolidConnectionResponse
-        solidDisconnect: Boolean
-        solidPullPortableState: String
-        solidPushPortableState(input: PortableStateInput!): Boolean
-        solidAppendActivityEvent(input: ActivityEventInput!): Boolean
-      }
-
       type SolidConnectionStatus {
         connected: Boolean
         webId: String
         issuer: String
         lastSyncAt: String
-      }
-
-      type SolidStartConnectResponse {
-        authorizationUrl: String
-      }
-
-      type SolidConnectionResponse {
-        success: Boolean
-        webId: String
-        issuer: String
-        message: String
-      }
-
-      input PortableStateInput {
-        content: String
-      }
-
-      input ActivityEventInput {
-        type: String
-        payload: String
       }
     `,
     resolvers: [
@@ -110,7 +93,7 @@ async function startServer() {
           try {
             const decoded = await auth.verifyToken(token);
             if (decoded && typeof decoded === 'object' && decoded.userId) {
-              user = (await User.findById(decoded.userId)) as typeof User.prototype;
+              user = (await User.findById(decoded.userId)) as unknown as Common.User;
             }
           } catch {
             // Token invalid or expired, proceed as unauthenticated
@@ -121,7 +104,7 @@ async function startServer() {
           req,
           res,
           user,
-          pubsub: null as any, // Placeholder until real PubSub is added
+          pubsub: noOpPubSub,
         };
       },
     })
