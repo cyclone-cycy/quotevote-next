@@ -51,11 +51,46 @@ async function startServer() {
         solidConnectionStatus: SolidConnectionStatus
       }
 
+      type Mutation {
+          solidStartConnect(issuer: String!): SolidConnectResult
+          solidFinishConnect(code: String!, state: String!, redirectUri: String!): SolidConnectResult
+          solidDisconnect: Boolean
+          solidPullPortableState: PortableState
+          solidPushPortableState(input: PortableStateInput!): Boolean
+          solidAppendActivityEvent(input: ActivityEventInput!): Boolean
+      }
+
       type SolidConnectionStatus {
         connected: Boolean
         webId: String
         issuer: String
         lastSyncAt: String
+      }
+
+      type SolidConnectResult {
+          authorizationUrl: String
+          success: Boolean
+          webId: String
+          issuer: String
+          message: String
+      }
+      
+      scalar JSON
+
+      type PortableState {
+          version: String
+          collections: [JSON]
+      }
+
+      input PortableStateInput {
+          version: String
+          collections: [JSON]
+      }
+      
+      input ActivityEventInput {
+          type: String!
+          payload: JSON!
+          timestamp: String
       }
     `,
     resolvers: [
