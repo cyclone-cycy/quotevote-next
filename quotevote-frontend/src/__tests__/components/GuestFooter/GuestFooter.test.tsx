@@ -103,7 +103,6 @@ describe('GuestFooter Component', () => {
   describe('Responsive Behavior', () => {
     it('renders with responsive layout structure', () => {
       const { container } = render(<GuestFooter />);
-      const footer = container.querySelector('footer');
       // New design uses flex-col sm:flex-row for responsive layout
       const innerContainer = container.querySelector('.flex.flex-col.sm\\:flex-row');
       expect(innerContainer).toBeInTheDocument();
