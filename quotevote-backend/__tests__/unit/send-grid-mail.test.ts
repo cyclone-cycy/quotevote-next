@@ -10,12 +10,16 @@ import sendGridEmail, {
 // This prevents actual emails from being sent during tests
 jest.mock('@sendgrid/mail');
 jest.mock('../../app/data/utils/logger');
+jest.mock('../../app/types/environment');
 
 import sgMail from '@sendgrid/mail';
 import { logger } from '../../app/data/utils/logger';
+import { parseEnvironmentConfig } from '../../app/types/environment';
+import { EnvironmentConfig } from '../../app/types/environment';
 
 describe('send-grid-mail', () => {
   const originalEnv = process.env;
+  let mockConfig: EnvironmentConfig;
 
   // This ensures each test starts with a clean slate
   beforeEach(() => {
@@ -25,9 +29,24 @@ describe('send-grid-mail', () => {
     // Set up test environment variables
     process.env = {
       ...originalEnv,
+      NODE_ENV: 'test',
+      PORT: '4000',
+      MONGODB_URI: 'mongodb://localhost:27017/test',
+      JWT_SECRET: 'test-secret',
       SENDGRID_API_KEY: 'test-api-key-123',
       SENDGRID_SENDER_EMAIL: 'test@quote.vote',
     };
+
+    mockConfig = {
+      email: {
+        sendgrid: {
+          apiKey: 'test-api-key-123',
+          senderEmail: 'test@quote.vote',
+        },
+      },
+    } as EnvironmentConfig;
+
+    (parseEnvironmentConfig as jest.Mock).mockReturnValue(mockConfig);
   });
 
   // Clean up to prevent tests from affecting each other
@@ -146,8 +165,14 @@ describe('send-grid-mail', () => {
     // Test error cases (when things go wrong)
     describe('error handling', () => {
       it('should throw error when SENDGRID_API_KEY is not set', async () => {
-        // Arrange: Remove the API key
-        delete process.env.SENDGRID_API_KEY;
+        // Arrange: mock the config to not have sendgrid
+        (parseEnvironmentConfig as jest.Mock).mockReturnValue({
+          ...mockConfig,
+          email: {
+            ...mockConfig.email,
+            sendgrid: undefined,
+          },
+        });
 
         const emailData: EmailData = {
           to: 'test@example.com',
@@ -157,12 +182,12 @@ describe('send-grid-mail', () => {
 
         // Use async/await with try/catch OR Jest's rejects matcher
         await expect(sendGridEmail(emailData)).rejects.toThrow(
-          'SENDGRID_API_KEY environment variable is not set'
+          'SendGrid API key or sender email is not configured'
         );
 
         // Verify error was logged
         expect(logger.error).toHaveBeenCalledWith(
-          'SENDGRID_API_KEY environment variable is not set'
+          'SendGrid API key or sender email is not configured'
         );
       });
 

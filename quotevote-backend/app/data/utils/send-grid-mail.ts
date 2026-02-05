@@ -114,12 +114,19 @@ export interface EmailResult {
  * });
  * ```
  */
+import { parseEnvironmentConfig } from '../../types/environment';
+
+
+
 const sendGridEmail = async (emailData: EmailData): Promise<EmailResult> => {
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const config = parseEnvironmentConfig(process.env);
   
-  if (!apiKey) {
-    logger.error('SENDGRID_API_KEY environment variable is not set');
-    throw new Error('SENDGRID_API_KEY environment variable is not set');
+  const apiKey = config.email?.sendgrid?.apiKey;
+  const fromEmail = config.email?.sendgrid?.senderEmail;
+  
+  if (!apiKey || !fromEmail) {
+    logger.error('SendGrid API key or sender email is not configured');
+    throw new Error('SendGrid API key or sender email is not configured');
   }
 
   sgMail.setApiKey(apiKey);
@@ -128,7 +135,7 @@ const sendGridEmail = async (emailData: EmailData): Promise<EmailResult> => {
     throw new Error('Recipient email (to) is required');
   }
 
-  const from = emailData.from || `Team Quote.Vote <${process.env.SENDGRID_SENDER_EMAIL}>`;
+  const from = emailData.from || `Team Quote.Vote <${fromEmail}>`;
 
   // Build content array from provided text/html
   const content: Array<{ type: string; value: string }> = [];
@@ -162,7 +169,7 @@ const sendGridEmail = async (emailData: EmailData): Promise<EmailResult> => {
 
   logger.debug('sendGridEmail', {
     to: emailData.to,
-    from: emailData.from || `Team Quote.Vote <${process.env.SENDGRID_SENDER_EMAIL}>`,
+    from: emailData.from || `Team Quote.Vote <${fromEmail}>`,
     subject: emailData.subject,
     hasTemplateId: !!emailData.templateId,
   });
